@@ -156,8 +156,15 @@ func (c *Client) writePump() {
 
 // serveWs handles websocket requests from the peer.
 func serveWs(hub *Hub, nickname string, w http.ResponseWriter, r *http.Request) {
+	log.WithFields(log.Fields{"host": r.Host}).Info("Requesting WS connection")
+
 	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return os.Getenv("DEVELOPMENT") == "true"
+		origin := r.Header.Get("Origin")
+
+		if os.Getenv("DEVELOPMENT") == "true" { return true }
+		if origin == "https://teampulse-frontend.herokuapp.com" { return true }
+
+		return false
 	}
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
